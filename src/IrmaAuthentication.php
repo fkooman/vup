@@ -65,7 +65,7 @@ class IrmaAuthentication implements ServiceModuleInterface, BeforeHookInterface
                 // @see https://irma.app/docs/api-irma-server/#get-session-token-result
                 $jsonData = Json::decode($httpResponse->getBody());
                 if (\array_key_exists('error', $jsonData)) {
-                    throw new HttpException('Error: ', $jsonData['error'], 401);
+                    throw new HttpException('Error: '.$jsonData['error'], 401);
                 }
 
                 // the "proofStatus" key is only available when the
