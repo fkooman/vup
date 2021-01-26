@@ -154,6 +154,7 @@ class IrmaAuthentication implements ServiceModuleInterface, BeforeHookInterface
             $this->tpl->render(
                 'irmaAuthentication',
                 [
+                    '_show_logout_button' => false,
                     'sessionPtr' => $sessionPtr,
                 ]
             )
