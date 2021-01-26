@@ -60,7 +60,7 @@ class IrmaAuthentication implements ServiceModuleInterface, BeforeHookInterface
                     throw new HttpException('token not found in session', 400);
                 }
 
-                $irmaStatusUrl = sprintf('%s/session/%s/result', $this->config->requireString('irmaServerUrl'), $sessionToken);
+                $irmaStatusUrl = sprintf('%s/session/%s/result', $this->config->requireString('irmaServerUrl', 'http://localhost:8088'), $sessionToken);
                 $httpResponse = $this->httpClient->get($irmaStatusUrl, [], []);
                 // @see https://irma.app/docs/api-irma-server/#get-session-token-result
                 $jsonData = Json::decode($httpResponse->getBody());
@@ -117,7 +117,7 @@ class IrmaAuthentication implements ServiceModuleInterface, BeforeHookInterface
 
         // @see https://irma.app/docs/getting-started/#perform-a-session
         $httpResponse = $this->httpClient->postJson(
-            $this->config->requireString('irmaServerUrl').'/session',
+            $this->config->requireString('irmaServerUrl', 'http://localhost:8088').'/session',
             [],
             [
                 '@context' => 'https://irma.app/ld/request/disclosure/v2',
