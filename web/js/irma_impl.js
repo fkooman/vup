@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const sessionPtr = document.getElementById("irmaAuth").dataset.sessionPtr;
     const irmaFrontend = irma.newPopup({
         debugging: false,
+        language: 'en',
         session: {
             start: false,
             mapping: {
