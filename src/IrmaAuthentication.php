@@ -116,21 +116,24 @@ class IrmaAuthentication implements ServiceModuleInterface, BeforeHookInterface
         }
 
         // @see https://irma.app/docs/getting-started/#perform-a-session
-        $httpResponse = $this->httpClient->postJson(
+        $httpResponse = $this->httpClient->postRaw(
             $this->config->requireString('irmaServerUrl', 'http://localhost:8088').'/session',
             [],
-            [
-                '@context' => 'https://irma.app/ld/request/disclosure/v2',
-                'disclose' => [
-                    [
+            Json::encode(
+                [
+                    '@context' => 'https://irma.app/ld/request/disclosure/v2',
+                    'disclose' => [
                         [
-                            $this->config->requireString('userIdAttribute'),
+                            [
+                                $this->config->requireString('userIdAttribute'),
+                            ],
                         ],
                     ],
-                ],
-            ],
+                ]
+            ),
             [
                 'Authorization: '.$this->config->requireString('secretToken'),
+                'Content-Type: application/json',
             ]
         );
 
