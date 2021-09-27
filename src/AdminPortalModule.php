@@ -36,14 +36,21 @@ class AdminPortalModule implements ServiceModuleInterface
     /** @var \LC\Common\HttpClient\ServerClient */
     private $serverClient;
 
+    /** @var string */
+    private $authMethod;
+
     /** @var \DateTime */
     private $dateTime;
 
-    public function __construct(TplInterface $tpl, Storage $storage, ServerClient $serverClient)
+    /**
+     * @param string $authMethod
+     */
+    public function __construct(TplInterface $tpl, Storage $storage, ServerClient $serverClient, $authMethod)
     {
         $this->tpl = $tpl;
         $this->storage = $storage;
         $this->serverClient = $serverClient;
+        $this->authMethod = $authMethod;
         $this->dateTime = new DateTime();
     }
 
@@ -138,8 +145,7 @@ class AdminPortalModule implements ServiceModuleInterface
                 /** @var \LC\Common\Http\UserInfo */
                 $userInfo = $hookData['auth'];
                 $adminUserId = $userInfo->getUserId();
-                $userId = $request->requireQueryParameter('user_id');
-                InputValidation::userId($userId);
+                $userId = InputValidation::userId($request->requireQueryParameter('user_id'));
 
                 $clientCertificateList = $this->serverClient->getRequireArray('client_certificate_list', ['user_id' => $userId]);
                 $userMessages = $this->serverClient->getRequireArray('user_messages', ['user_id' => $userId]);
@@ -182,8 +188,7 @@ class AdminPortalModule implements ServiceModuleInterface
                 /** @var \LC\Common\Http\UserInfo */
                 $userInfo = $hookData['auth'];
                 $adminUserId = $userInfo->getUserId();
-                $userId = $request->requirePostParameter('user_id');
-                InputValidation::userId($userId);
+                $userId = InputValidation::userId($request->requirePostParameter('user_id'));
 
                 // if the current user being managed is the account itself,
                 // do not allow this. We don't want admins allow to disable
@@ -223,6 +228,27 @@ class AdminPortalModule implements ServiceModuleInterface
                         $this->serverClient->post('enable_user', ['user_id' => $userId]);
                         break;
 
+                    case 'deleteUser':
+                        // delete OAuth authorizations
+                        $this->storage->deleteAuthorizationsOfUserId($userId);
+                        // delete all certificates of user and associated data
+                        $this->serverClient->post('delete_user', ['user_id' => $userId]);
+
+                        if ('FormPdoAuthentication' === $this->authMethod) {
+                            // also delete the user account when the user is local
+                            $this->storage->deleteUser($userId);
+                        }
+
+                        // get active connections for this user
+                        $connectionList = $this->serverClient->getRequireArray('client_connections', ['user_id' => $userId]);
+                        // kill all active connections for this user
+                        foreach ($connectionList as $profileId => $clientConnectionList) {
+                            foreach ($clientConnectionList as $clientInfo) {
+                                $this->serverClient->post('kill_client', ['common_name' => $clientInfo['common_name']]);
+                            }
+                        }
+
+                        return new RedirectResponse($request->getRootUri().'users');
                     case 'deleteTotpSecret':
                         $this->serverClient->post('delete_totp_secret', ['user_id' => $userId]);
                         break;
@@ -231,9 +257,7 @@ class AdminPortalModule implements ServiceModuleInterface
                         throw new HttpException('unsupported "user_action"', 400);
                 }
 
-                $returnUrl = sprintf('%susers', $request->getRootUri());
-
-                return new RedirectResponse($returnUrl);
+                return new RedirectResponse($request->getRootUri().'user?user_id='.$userId);
             }
         );
 
@@ -373,9 +397,7 @@ class AdminPortalModule implements ServiceModuleInterface
                 }
                 // convert it to UTC as our server logs are all in UTC
                 $dateTime->setTimeZone(new DateTimeZone('UTC'));
-
-                $ipAddress = $request->requirePostParameter('ip_address');
-                InputValidation::ipAddress($ipAddress);
+                $ipAddress = InputValidation::ipAddress($request->requirePostParameter('ip_address'));
 
                 return new HtmlResponse(
                     $this->tpl->render(
@@ -556,6 +578,6 @@ class AdminPortalModule implements ServiceModuleInterface
      */
     private static function getCoordinates($f)
     {
-        return [cos(2 * M_PI * $f), sin(2 * M_PI * $f)];
+        return [cos(2 * \M_PI * $f), sin(2 * \M_PI * $f)];
     }
 }

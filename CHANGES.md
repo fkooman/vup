@@ -1,5 +1,38 @@
 # Changelog
 
+## 2.3.14 (2021-08-26)
+- **SECURITY**: implement proper input validation for QR code generation 
+  (CVE-2021-41583)
+- only enable QR code module when 2FA is enabled
+
+## 2.3.13 (2021-08-02)
+- support (non vendor-specific) RADIUS attribute for authorization
+
+## 2.3.12 (2021-07-13)
+- remove 
+  [nightly session expiry](https://github.com/eduvpn/documentation/blob/v2/EXPIRE_AT_NIGHT.md)
+  again as it was very broken
+- no longer show "Danger Zone" when managing your own account
+- allow hiding the "Permission(s)" on the user's "Account" page
+- show profiles available to the user on the "Account" page
+- fix margin for lists in tables
+
+## 2.3.11 (2021-06-08)
+- support expiring VPN session at night now for all scenarios where 
+  `sessionExpiry` >= 1 day
+- session expiry is now always (upper)bound to CA expiry
+- implement a "Delete User" (for local accounts) and "Delete User Data" (for 
+  accounts in external IdM)
+- add Romanian (Romania) translation
+
+## 2.3.10 (2021-05-03)
+- implement support for 
+  [nightly session expiry](https://github.com/eduvpn/documentation/blob/v2/EXPIRE_AT_NIGHT.md) 
+  @ 04:00 according to server timezone when session expiry is >= 7 days
+  
+## 2.3.9 (2021-04-12)
+- add Spanish (Latin America) translation
+
 ## 2.3.8 (2021-03-15)
 - show portal version on "Info" page
 - implement support for optional LDAP bind with credentials for initial search

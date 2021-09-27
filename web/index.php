@@ -36,6 +36,7 @@ use LC\Portal\AdminPortalModule;
 use LC\Portal\ClientCertAuthentication;
 use LC\Portal\ClientFetcher;
 use LC\Portal\DisabledUserHook;
+use LC\Portal\Expiry;
 use LC\Portal\FormLdapAuthentication;
 use LC\Portal\FormPdoAuthentication;
 use LC\Portal\FormRadiusAuthentication;
@@ -79,15 +80,23 @@ try {
         $localeDirs[] = sprintf('%s/config/locale/%s', $baseDir, $styleName);
     }
 
-    $sessionExpiry = $config->requireString('sessionExpiry', 'P90D');
+    $serverClient = new ServerClient(
+        new CurlHttpClient($config->requireString('apiUser'), $config->requireString('apiPass')),
+        $config->requireString('apiUri')
+    );
 
-    // we always want browser session to expiry after PT8H hours, *EXCEPT* when
-    // the configured "sessionExpiry" is < PT8H, then we want to follow that
+    $sessionExpiry = new DateInterval($config->requireString('sessionExpiry', 'P90D'));
+    $caInfo = $serverClient->getRequireArray('ca_info');
+    $caExpiresAt = new DateTime($caInfo['valid_to']);
+    $sessionExpiry = Expiry::doNotOutliveCa($caExpiresAt, $sessionExpiry);
+
+    // we always want browser session to expiry after 30 minutes, *EXCEPT* when
+    // the configured "sessionExpiry" is < PT30M, then we want to follow that
     // setting...
     $sessionOptions = SessionOptions::init();
     $dateTime = new DateTime();
-    if (date_add(clone $dateTime, new DateInterval('PT30M')) > date_add(clone $dateTime, new DateInterval($sessionExpiry))) {
-        $sessionOptions = SessionOptions::init()->withExpiresIn(new DateInterval($sessionExpiry));
+    if (date_add(clone $dateTime, new DateInterval('PT30M')) > date_add(clone $dateTime, $sessionExpiry)) {
+        $sessionOptions = SessionOptions::init()->withExpiresIn($sessionExpiry);
     }
 
     $secureCookie = $config->requireBool('secureCookie', true);
@@ -130,16 +139,12 @@ try {
         'portalVersion' => trim(FileIO::readFile(sprintf('%s/VERSION', $baseDir))),
         'isAdmin' => false,
         'useRtl' => 0 === strpos($uiLang, 'ar_') || 0 === strpos($uiLang, 'fa_') || 0 === strpos($uiLang, 'he_'),
+        'authMethod' => $authMethod,
     ];
     if ('ClientCertAuthentication' === $authMethod) {
         $templateDefaults['_show_logout_button'] = false;
     }
     $tpl->addDefault($templateDefaults);
-
-    $serverClient = new ServerClient(
-        new CurlHttpClient($config->requireString('apiUser'), $config->requireString('apiPass')),
-        $config->requireString('apiUri')
-    );
 
     $service = new Service($tpl);
     $service->addBeforeHook('csrf_protection', new CsrfProtectionHook());
@@ -169,7 +174,7 @@ try {
     $storage = new Storage(
         new PDO(sprintf('sqlite://%s/db.sqlite', $dataDir)),
         sprintf('%s/schema', $baseDir),
-        new DateInterval($sessionExpiry)
+        $sessionExpiry
     );
     $storage->update();
 
@@ -296,14 +301,13 @@ try {
     }
 
     $service->addBeforeHook('disabled_user', new DisabledUserHook($serverClient));
-    $service->addBeforeHook('update_session_info', new UpdateSessionInfoHook($seSession, $serverClient, new DateInterval($sessionExpiry)));
-
-    $service->addModule(new QrModule());
+    $service->addBeforeHook('update_session_info', new UpdateSessionInfoHook($seSession, $serverClient, $sessionExpiry));
 
     // two factor module
     if (0 !== count($twoFactorMethods)) {
         $twoFactorModule = new TwoFactorModule($serverClient, $seSession, $tpl);
         $service->addModule($twoFactorModule);
+        $service->addModule(new QrModule());
     }
 
     // isAdmin
@@ -325,14 +329,16 @@ try {
         $serverClient,
         $seSession,
         $storage,
-        $clientFetcher
+        $clientFetcher,
+        $sessionExpiry
     );
     $service->addModule($vpnPortalModule);
 
     $adminPortalModule = new AdminPortalModule(
         $tpl,
         $storage,
-        $serverClient
+        $serverClient,
+        $authMethod
     );
     $service->addModule($adminPortalModule);
 

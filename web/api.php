@@ -21,6 +21,7 @@ use LC\Common\HttpClient\ServerClient;
 use LC\Common\Logger;
 use LC\Portal\BearerAuthenticationHook;
 use LC\Portal\ClientFetcher;
+use LC\Portal\Expiry;
 use LC\Portal\OAuth\BearerValidator;
 use LC\Portal\Storage;
 use LC\Portal\VpnApiModule;
@@ -42,10 +43,15 @@ try {
         $config->requireString('apiUri')
     );
 
+    $sessionExpiry = new DateInterval($config->requireString('sessionExpiry', 'P90D'));
+    $caInfo = $serverClient->getRequireArray('ca_info');
+    $caExpiresAt = new DateTime($caInfo['valid_to']);
+    $sessionExpiry = Expiry::doNotOutliveCa($caExpiresAt, $sessionExpiry);
+
     $storage = new Storage(
         new PDO(sprintf('sqlite://%s/db.sqlite', $dataDir)),
         sprintf('%s/schema', $baseDir),
-        new DateInterval($config->requireString('sessionExpiry', 'P90D'))
+        $sessionExpiry
     );
     $storage->update();
 
@@ -83,7 +89,7 @@ try {
     $vpnApiModule = new VpnApiModule(
         $config,
         $serverClient,
-        new DateInterval($config->requireString('sessionExpiry', 'P90D'))
+        $sessionExpiry
     );
     $service->addModule($vpnApiModule);
     $service->run($request)->send();

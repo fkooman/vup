@@ -17,8 +17,11 @@ use LC\Common\FileIO;
 use LC\Common\Http\JsonResponse;
 use LC\Common\Http\Request;
 use LC\Common\Http\Service;
+use LC\Common\HttpClient\CurlHttpClient;
+use LC\Common\HttpClient\ServerClient;
 use LC\Common\Logger;
 use LC\Portal\ClientFetcher;
+use LC\Portal\Expiry;
 use LC\Portal\OAuth\PublicSigner;
 use LC\Portal\OAuthTokenModule;
 use LC\Portal\Storage;
@@ -34,11 +37,21 @@ try {
     $config = Config::fromFile(sprintf('%s/config/config.php', $baseDir));
     $service = new Service();
 
+    $serverClient = new ServerClient(
+        new CurlHttpClient($config->requireString('apiUser'), $config->requireString('apiPass')),
+        $config->requireString('apiUri')
+    );
+
+    $sessionExpiry = new DateInterval($config->requireString('sessionExpiry', 'P90D'));
+    $caInfo = $serverClient->getRequireArray('ca_info');
+    $caExpiresAt = new DateTime($caInfo['valid_to']);
+    $sessionExpiry = Expiry::doNotOutliveCa($caExpiresAt, $sessionExpiry);
+
     // OAuth tokens
     $storage = new Storage(
         new PDO(sprintf('sqlite://%s/db.sqlite', $dataDir)),
         sprintf('%s/schema', $baseDir),
-        new DateInterval($config->requireString('sessionExpiry', 'P90D'))
+        $sessionExpiry
     );
     $storage->update();
 

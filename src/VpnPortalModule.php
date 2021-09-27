@@ -49,7 +49,10 @@ class VpnPortalModule implements ServiceModuleInterface
     /** @var \DateTime */
     private $dateTime;
 
-    public function __construct(Config $config, TplInterface $tpl, ServerClient $serverClient, SessionInterface $session, Storage $storage, ClientDbInterface $clientDb)
+    /** @var \DateInterval */
+    private $sessionExpiry;
+
+    public function __construct(Config $config, TplInterface $tpl, ServerClient $serverClient, SessionInterface $session, Storage $storage, ClientDbInterface $clientDb, DateInterval $sessionExpiry)
     {
         $this->config = $config;
         $this->tpl = $tpl;
@@ -57,6 +60,7 @@ class VpnPortalModule implements ServiceModuleInterface
         $this->session = $session;
         $this->storage = $storage;
         $this->clientDb = $clientDb;
+        $this->sessionExpiry = $sessionExpiry;
         $this->dateTime = new DateTime();
     }
 
@@ -139,7 +143,7 @@ class VpnPortalModule implements ServiceModuleInterface
                     $this->tpl->render(
                         'vpnPortalConfigurations',
                         [
-                            'expiryDate' => $this->getExpiryDate(new DateInterval($this->config->requireString('sessionExpiry', 'P90D'))),
+                            'expiryDate' => $this->getExpiryDate($this->sessionExpiry),
                             'profileList' => $visibleProfileList,
                             'userCertificateList' => $showAll ? $userCertificateList : $manualCertificateList,
                         ]
@@ -220,6 +224,7 @@ class VpnPortalModule implements ServiceModuleInterface
 
                 // get the fancy profile name
                 $profileList = $this->serverClient->getRequireArray('profile_list');
+                $visibleProfileList = self::getProfileList($profileList, $userPermissions);
 
                 $idNameMapping = [];
                 foreach ($profileList as $profileId => $profileData) {
@@ -232,12 +237,14 @@ class VpnPortalModule implements ServiceModuleInterface
                         [
                             'hasTotpSecret' => $hasTotpSecret,
                             'userInfo' => $userInfo,
+                            'showPermissions' => $this->config->requireBool('showPermissions', true),
                             'userPermissions' => $userPermissions,
                             'authorizedClients' => $authorizedClients,
                             'twoFactorMethods' => $this->config->requireArray('twoFactorMethods', ['totp']),
                             'userMessages' => $userMessages,
                             'userConnectionLogEntries' => $userConnectionLogEntries,
                             'idNameMapping' => $idNameMapping,
+                            'visibleProfileList' => $visibleProfileList,
                         ]
                     )
                 );

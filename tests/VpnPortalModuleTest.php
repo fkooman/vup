@@ -43,7 +43,8 @@ class VpnPortalModuleTest extends TestCase
             $serverClient,
             new TestSession(),
             $storage,
-            new ClientFetcher(new Config(['Api' => []]))
+            new ClientFetcher(new Config(['Api' => []])),
+            new DateInterval('P90D')
         );
         $vpnPortalModule->setDateTime(new DateTime('2019-01-01'));
         $this->service = new Service();
@@ -97,6 +98,7 @@ class VpnPortalModuleTest extends TestCase
                 'vpnPortalAccount' => [
                     'hasTotpSecret' => false,
                     'userInfo' => [],
+                    'showPermissions' => true,
                     'userPermissions' => [],
                     'authorizedClients' => [],
                     'twoFactorMethods' => [
@@ -106,6 +108,11 @@ class VpnPortalModuleTest extends TestCase
                     'userConnectionLogEntries' => [],
                     'idNameMapping' => [
                         'internet' => 'Internet Access',
+                    ],
+                    'visibleProfileList' => [
+                        'internet' => [
+                            'displayName' => 'Internet Access',
+                        ],
                     ],
                 ],
             ],

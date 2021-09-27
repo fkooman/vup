@@ -8,6 +8,45 @@ This will help upgrades to a future 3.x release. Configuration changes during
 the 2.x life cycle are NOT required. Any existing configuration file will keep
 working!
 
+## 2.3.13
+
+Support `permissionAttribute` configuration option for the RADIUS 
+authentication backend. This allows you to specify an attribute to be used for
+authorization. See 
+[documentation](https://github.com/eduvpn/documentation/blob/v2/RADIUS.md).
+
+## 2.3.12
+
+remove `sessionExpireAtNight` as it is too complicated to implement correctly 
+in eduVPN/Let's Connect! 2.x.
+
+We have now the `showPermissions` option that takes a `bool` to show/hide the
+"Permission(s)" on the user's "Account" page. The default is `true`.
+
+## 2.3.11
+
+We added the translation for Romanian (Romania). You can add it to 
+`config.php` under `supportedLanguages` to enable it in your portal:
+
+```
+'ro-RO' => 'română'
+```
+
+## 2.3.10
+
+The `sessionExpireAtNight` option (taking a boolean) has been added. Read the
+[docs](https://github.com/eduvpn/documentation/blob/v2/EXPIRE_AT_NIGHT.md) 
+on how to use it.
+
+## 2.3.9
+
+We added the translation for Spanish (Latin America). You can add it to 
+`config.php` under `supportedLanguages` to enable it in your portal:
+
+```
+'es_LA' => 'español',
+```
+
 ## 2.3.8
 
 The `FormLdapAuthentication` section also takes `searchBindDn` and 
