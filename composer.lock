@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d6c6891d975bad5a46c510b64fb88d33",
+    "content-hash": "e70a2c2bc87b58fd47ffd3ef7d02dfc1",
     "packages": [
         {
             "name": "fkooman/oauth2-server",
@@ -174,12 +174,54 @@
             "time": "2020-11-10T18:47:58+00:00"
         },
         {
+            "name": "fkooman/mfmt",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://git.sr.ht/~fkooman/php-lib-mfmt",
+                "reference": "9d20160ddc5be1a9fc3e252be5ce3d73b4ec2582"
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-date": "*",
+                "ext-hash": "*",
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "ext-pdo": "*",
+                "ext-session": "*",
+                "ext-sodium": "*",
+                "ext-spl": "*",
+                "php": ">= 7.4"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "fkooman\\Mfmt\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "email": "fkooman@tuxed.net",
+                    "name": "François Kooman"
+                }
+            ],
+            "description": "Simple MFMT Library",
+            "time": "2022-02-17T14:08:23+00:00"
+        },
+        {
             "name": "fkooman/saml-sp",
-            "version": "2.0.0",
+            "version": "dev-mfmt",
             "source": {
                 "type": "git",
                 "url": "https://git.sr.ht/~fkooman/php-saml-sp",
-                "reference": "b796eee6527e266b4308cd2e0555b88f191d309c"
+                "reference": "5661a70e365be874c355471744579c5d5e663d00"
             },
             "require": {
                 "ext-curl": "*",
@@ -193,6 +235,7 @@
                 "ext-sodium": "*",
                 "ext-spl": "*",
                 "ext-zlib": "*",
+                "fkooman/mfmt": "dev-main",
                 "fkooman/secookie": "^6",
                 "php": ">=7.4"
             },
@@ -225,7 +268,7 @@
                 "email": "fkooman@tuxed.net",
                 "source": "https://git.sr.ht/~fkooman/php-saml-sp"
             },
-            "time": "2021-12-23T14:52:56+00:00"
+            "time": "2022-02-18T12:31:20+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -678,16 +721,16 @@
         },
         {
             "name": "phpunit/php-code-coverage",
-            "version": "9.2.10",
+            "version": "9.2.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "d5850aaf931743067f4bfc1ae4cbd06468400687"
+                "reference": "665a1ac0a763c51afc30d6d130dac0813092b17f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/d5850aaf931743067f4bfc1ae4cbd06468400687",
-                "reference": "d5850aaf931743067f4bfc1ae4cbd06468400687",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/665a1ac0a763c51afc30d6d130dac0813092b17f",
+                "reference": "665a1ac0a763c51afc30d6d130dac0813092b17f",
                 "shasum": ""
             },
             "require": {
@@ -743,7 +786,7 @@
             ],
             "support": {
                 "issues": "https://github.com/sebastianbergmann/php-code-coverage/issues",
-                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/9.2.10"
+                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/9.2.11"
             },
             "funding": [
                 {
@@ -751,7 +794,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-12-05T09:12:13+00:00"
+            "time": "2022-02-18T12:46:09+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -2253,8 +2296,10 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
-    "stability-flags": [],
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "fkooman/saml-sp": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

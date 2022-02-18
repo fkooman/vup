@@ -29,6 +29,7 @@ use Vpn\Portal\Http\Auth\DbCredentialValidator;
 use Vpn\Portal\Http\Auth\LdapCredentialValidator;
 use Vpn\Portal\Http\Auth\MellonAuthModule;
 use Vpn\Portal\Http\Auth\PhpSamlSpAuthModule;
+use Vpn\Portal\Http\Auth\PhpSpAuthModule;
 use Vpn\Portal\Http\Auth\RadiusCredentialValidator;
 use Vpn\Portal\Http\Auth\ShibAuthModule;
 use Vpn\Portal\Http\Auth\UserPassAuthModule;
@@ -151,6 +152,11 @@ try {
 
         case 'PhpSamlSpAuthModule':
             $authModule = new PhpSamlSpAuthModule($config->phpSamlSpAuthConfig());
+
+            break;
+
+        case 'PhpSpAuthModule':
+            $authModule = new PhpSpAuthModule($config->phpSpAuthConfig());
 
             break;
 

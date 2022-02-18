@@ -180,6 +180,11 @@ class Config
         return new PhpSamlSpAuthConfig($this->s('PhpSamlSpAuthModule')->toArray());
     }
 
+    public function phpSpAuthConfig(): PhpSpAuthConfig
+    {
+        return new PhpSpAuthConfig($this->s('PhpSpAuthModule')->toArray());
+    }
+
     public function shibAuthConfig(): ShibAuthConfig
     {
         return new ShibAuthConfig($this->s('ShibAuthModule')->toArray());

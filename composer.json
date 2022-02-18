@@ -23,6 +23,7 @@
     },
     "description": "VPN Portal",
     "license": "AGPL-3.0-or-later",
+    "minimum-stability": "dev",
     "name": "vpn/portal",
     "prefer-stable": true,
     "repositories": [
@@ -37,6 +38,10 @@
         {
             "type": "vcs",
             "url": "https://git.sr.ht/~fkooman/php-saml-sp"
+        },
+        {
+            "type": "vcs",
+            "url": "https://git.sr.ht/~fkooman/php-lib-mfmt"
         }
     ],
     "require": {
@@ -58,7 +63,7 @@
         "php": ">=7.4"
     },
     "require-dev": {
-        "fkooman/saml-sp": "^2",
+        "fkooman/saml-sp": "dev-mfmt",
         "phpunit/phpunit": "^9"
     },
     "suggest": {
