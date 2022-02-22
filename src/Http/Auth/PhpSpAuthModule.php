@@ -48,7 +48,8 @@ class PhpSpAuthModule extends AbstractAuthModule
 
         return new UserInfo(
             $attributeList[$userIdAttribute][0],
-            $this->getPermissionList($attributeList)
+            $this->getPermissionList($attributeList),
+            $activeSession->sessionId()
         );
     }
 
