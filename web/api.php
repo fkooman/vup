@@ -15,6 +15,7 @@ $baseDir = dirname(__DIR__);
 use fkooman\OAuth\Server\PdoStorage as OAuthStorage;
 use fkooman\OAuth\Server\Signer;
 use Vpn\Portal\Cfg\Config;
+use Vpn\Portal\Cfg\KeyConfig;
 use Vpn\Portal\ConnectionManager;
 use Vpn\Portal\FileIO;
 use Vpn\Portal\Http\ApiService;
@@ -56,7 +57,7 @@ try {
         $request->getRootUri(),
         $baseDir.'/data/keys',
         $ca,
-        new TlsCrypt($baseDir.'/data/keys'),
+        new TlsCrypt($baseDir.'/data/keys', new KeyConfig($storage)),
         $config->wireGuardConfig()->listenPort(),
         Signer::publicKeyFromSecretKey($oauthKey)
     );

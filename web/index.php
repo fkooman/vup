@@ -17,6 +17,7 @@ use fkooman\OAuth\Server\Signer;
 use fkooman\SeCookie\Cookie;
 use fkooman\SeCookie\CookieOptions;
 use Vpn\Portal\Cfg\Config;
+use Vpn\Portal\Cfg\KeyConfig;
 use Vpn\Portal\ConnectionManager;
 use Vpn\Portal\Dt;
 use Vpn\Portal\Expiry;
@@ -204,7 +205,7 @@ try {
         $request->getRootUri(),
         $baseDir.'/data/keys',
         $ca,
-        new TlsCrypt($baseDir.'/data/keys'),
+        new TlsCrypt($baseDir.'/data/keys', new KeyConfig($storage)),
         $config->wireGuardConfig()->listenPort(),
         Signer::publicKeyFromSecretKey($oauthKey)
     );

@@ -11,18 +11,19 @@ declare(strict_types=1);
 
 namespace Vpn\Portal\OpenVpn;
 
+use Vpn\Portal\Cfg\KeyConfig;
 use Vpn\Portal\FileIO;
 use Vpn\Portal\Validator;
 
 class TlsCrypt
 {
     private string $keyDir;
+    private KeyConfig $keyConfig;
 
-    public function __construct(string $keyDir)
+    public function __construct(string $keyDir, KeyConfig $keyConfig)
     {
-        // make sure "keyDir" exists
-        FileIO::mkdir($keyDir);
         $this->keyDir = $keyDir;
+        $this->keyConfig = $keyConfig;
     }
 
     public function get(string $profileId): string
@@ -30,15 +31,25 @@ class TlsCrypt
         // validate profileId also here, to make absolutely sure...
         Validator::profileId($profileId);
 
-        $tlsCryptKeyFile = $this->keyDir.'/tls-crypt-'.$profileId.'.key';
-        if (FileIO::exists($tlsCryptKeyFile)) {
-            return FileIO::read($tlsCryptKeyFile);
+        if ($this->keyConfig->hasTlsCryptKey($profileId)) {
+            return $this->keyConfig->tlsCryptKey($profileId);
         }
 
-        // no key yet, create one
-        FileIO::write($tlsCryptKeyFile, self::generate());
+        // do we (still) have one on disk we need to migrate?
+        $tlsCryptKeyFile = $this->keyDir.'/tls-crypt-'.$profileId.'.key';
+        if (FileIO::exists($tlsCryptKeyFile)) {
+            // import it into the database and delete the file from disk
+            $tlsCryptKey = FileIO::read($tlsCryptKeyFile);
+            $this->keyConfig->setTlsCryptKey($profileId, $tlsCryptKey);
+            FileIO::delete($tlsCryptKeyFile);
 
-        return FileIO::read($tlsCryptKeyFile);
+            return $tlsCryptKey;
+        }
+
+        $tlsCryptKey = self::generate();
+        $this->keyConfig->setTlsCryptKey($profileId, $tlsCryptKey);
+
+        return $tlsCryptKey;
     }
 
     private static function generate(): string

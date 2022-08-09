@@ -13,6 +13,7 @@ require_once dirname(__DIR__).'/vendor/autoload.php';
 $baseDir = dirname(__DIR__);
 
 use Vpn\Portal\Cfg\Config;
+use Vpn\Portal\Cfg\KeyConfig;
 use Vpn\Portal\Http\Auth\NodeAuthModule;
 use Vpn\Portal\Http\JsonResponse;
 use Vpn\Portal\Http\NodeApiModule;
@@ -45,12 +46,13 @@ try {
     $storage = new Storage($config->dbConfig($baseDir));
     $ca = new VpnCa($baseDir.'/config/keys/ca', $config->vpnCaPath());
 
+    $keyConfig = new KeyConfig($storage);
     $nodeApiModule = new NodeApiModule(
         $config,
         $storage,
         new ServerConfig(
-            new OpenVpnServerConfig($ca, new TlsCrypt($baseDir.'/data/keys')),
-            new WireGuardServerConfig($baseDir.'/data/keys', $config->wireGuardConfig()->listenPort()),
+            new OpenVpnServerConfig($ca, new TlsCrypt($baseDir.'/data/keys', $keyConfig)),
+            new WireGuardServerConfig($baseDir.'/data/keys', $keyConfig, $config->wireGuardConfig()->listenPort()),
         ),
         $logger
     );

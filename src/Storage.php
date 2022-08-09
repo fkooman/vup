@@ -22,9 +22,12 @@ class Storage
     public const EXCLUDE_EXPIRED = 2;
     public const EXCLUDE_DISABLED_USER = 4;
 
-    public const CURRENT_SCHEMA_VERSION = '2022022201';
+    public const CURRENT_SCHEMA_VERSION = '2022080901';
 
     private PDO $db;
+
+    /** @var array<string,array<string,string>> */
+    private array $resultCache = [];
 
     public function __construct(DbConfig $dbConfig)
     {
@@ -1341,6 +1344,75 @@ class Storage
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get all configuration entries.
+     *
+     * @return array<string,string>
+     */
+    public function getCfg(): array
+    {
+        // if we have cached this, use it
+        if (\array_key_exists('cfg', $this->resultCache)) {
+            return $this->resultCache['cfg'];
+        }
+
+        $stmt = $this->db->prepare(
+            <<< 'SQL'
+                    SELECT
+                        cfg_key,
+                        cfg_value
+                    FROM
+                        cfg
+                SQL
+        );
+        $stmt->execute();
+
+        $resultSet = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $cfgData = [];
+        foreach ($resultSet as $resultRow) {
+            if (!\array_key_exists('cfg_key', $resultRow) || !\is_string($resultRow['cfg_key'])) {
+                continue;
+            }
+            if (!\array_key_exists('cfg_value', $resultRow) || !\is_string($resultRow['cfg_value'])) {
+                continue;
+            }
+
+            $cfgData[$resultRow['cfg_key']] = $resultRow['cfg_value'];
+        }
+
+        // write data we got to cache
+        $this->resultCache['cfg'] = $cfgData;
+
+        return $cfgData;
+    }
+
+    public function setCfg(string $cfgKey, string $cfgValue): void
+    {
+        $stmt = $this->db->prepare(
+            <<< 'SQL'
+                INSERT
+                INTO
+                    cfg (
+                        cfg_key,
+                        cfg_value
+                    )
+                    VALUES (
+                        :cfg_key,
+                        :cfg_value
+                    )
+                SQL
+        );
+
+        $stmt->bindValue(':cfg_key', $cfgKey, PDO::PARAM_STR);
+        $stmt->bindValue(':cfg_value', $cfgValue, PDO::PARAM_STR);
+        $stmt->execute();
+
+        // empty the result cache so we always get the actual data
+        if (\array_key_exists('cfg', $this->resultCache)) {
+            unset($this->resultCache['cfg']);
+        }
     }
 
     /**
